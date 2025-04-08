@@ -40,11 +40,17 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+	SDL_RenderClear(renderer);
+
 	BoardRenderer* boardRenderer = new BoardRenderer();
 	boardRenderer->LoadTextures(renderer);
+	boardRenderer->Render(renderer, *board);
 
 	bool isRunning = true;
 	SDL_Event event;
+	int mouseX, mouseY;
+	int matrixIndexX = -1, matrixIndexY = -1;
 
 	while (isRunning) {
 		while (SDL_PollEvent(&event)) {
@@ -53,10 +59,30 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
 		SDL_RenderClear(renderer);
 
 		boardRenderer->Render(renderer, *board);
+		SDL_GetMouseState(&mouseX, &mouseY);
+
+		Uint32 buttons = SDL_GetMouseState(nullptr, nullptr);
+		if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+			matrixIndexX = mouseY / (int)BoardRenderer::BoardDimmentions::SQUARE_SIZE;
+			matrixIndexY = mouseX / (int)BoardRenderer::BoardDimmentions::SQUARE_SIZE;
+		}
+
+		if (matrixIndexX != -1 && matrixIndexY != -1 && board->matrix[matrixIndexX][matrixIndexY] != "  ") {
+			SDL_Rect square = {
+				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE * matrixIndexY,
+				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE * matrixIndexX,
+				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE,
+				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE
+			};
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+			SDL_RenderFillRect(renderer, &square);
+			SDL_SetRenderDrawColor(renderer, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_RED, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_GREEN, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_BLUE, 255);
+			SDL_RenderFillRect(renderer, &square);
+		}
+
 		boardRenderer->PlacePeaces(renderer, *board);
 
 		SDL_RenderPresent(renderer);

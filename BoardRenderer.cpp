@@ -28,13 +28,13 @@ void BoardRenderer::Render(SDL_Renderer* renderer, const Board& board)
 			};
 
 			Color squaresColor = {
-				(Uint8)SquareColor::DARK_SQURE_RED, (Uint8)SquareColor::DARK_SQURE_GREEN, (Uint8)SquareColor::DARK_SQURE_BLUE, 255
+				(Uint8)SquareColor::DARK_SQUARE_RED, (Uint8)SquareColor::DARK_SQUARE_GREEN, (Uint8)SquareColor::DARK_SQUARE_BLUE, 255
 			};
 		
 			if ((i + j) % 2 == 0) {
 				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 				squaresColor = {
-					(Uint8)SquareColor::LIGHT_SQURE_RED, (Uint8)SquareColor::LIGHT_SQURE_GREEN, (Uint8)SquareColor::LIGHT_SQURE_BLUE, 255
+					(Uint8)SquareColor::LIGHT_SQUARE_RED, (Uint8)SquareColor::LIGHT_SQUARE_GREEN, (Uint8)SquareColor::LIGHT_SQUARE_BLUE, 255
 				};
 			}
 			SDL_SetRenderDrawColor(renderer, squaresColor.r, squaresColor.g, squaresColor.b, squaresColor.a);
@@ -46,7 +46,7 @@ void BoardRenderer::Render(SDL_Renderer* renderer, const Board& board)
 void BoardRenderer::LoadTextures(SDL_Renderer* renderer)
 {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
+	
 	bB = IMG_LoadTexture(renderer, stringConstants[0]);
 	bK = IMG_LoadTexture(renderer, stringConstants[1]);
 	bN = IMG_LoadTexture(renderer, stringConstants[2]);
@@ -62,6 +62,20 @@ void BoardRenderer::LoadTextures(SDL_Renderer* renderer)
 	if (!bB || !bK || !bN || !bP || !bQ || !bR || !wB || !wK || !wN || !wP || !wQ || !wR) {
 		std::cerr << "Failed to load textures: " << SDL_GetError() << std::endl;
 	}
+
+	SDL_SetTextureBlendMode(bB, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(bK, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(bN, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(bP, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(bQ, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(bR, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wB, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wK, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wN, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wP, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wQ, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(wR, SDL_BLENDMODE_BLEND);
+		
 }
 
 void BoardRenderer::Free()
