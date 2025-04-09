@@ -1,15 +1,14 @@
+#pragma once
+
 #include "SDL.h"
 #include "SDL_image.h"
 #include <iostream>
 #include <vector>
 
-#include "Board.h"
 #include "BoardRenderer.h"
 
 int main(int argc, char** argv) {
 	
-	Board* board = new Board();
-
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -22,7 +21,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	SDL_Window* window = SDL_CreateWindow("Chess game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)BoardRenderer::BoardDimmentions::WINDOWS_WIDTH, (int)BoardRenderer::BoardDimmentions::WINDOWS_HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Window* window = SDL_CreateWindow("Chess game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, BoardRenderer::WINDOW_WIDTH, BoardRenderer::WINDOW_WIDTH, SDL_WINDOW_SHOWN);
 	if (window == nullptr)
 	{
 		std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
@@ -43,6 +42,12 @@ int main(int argc, char** argv) {
 	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
 	SDL_RenderClear(renderer);
 
+	Board* board = new Board();
+	board->matrix[4][4] = "BB";
+	board->matrix[6][1] = "  ";
+	board->matrix[6][3] = "  ";
+	board->matrix[4][0] = "RW";
+
 	BoardRenderer* boardRenderer = new BoardRenderer();
 	boardRenderer->LoadTextures(renderer);
 	boardRenderer->Render(renderer, *board);
@@ -62,28 +67,57 @@ int main(int argc, char** argv) {
 		SDL_RenderClear(renderer);
 
 		boardRenderer->Render(renderer, *board);
+		
+		auto piecePtr = GetPiece(board, matrixIndexX, matrixIndexY);
+
 		SDL_GetMouseState(&mouseX, &mouseY);
 
 		Uint32 buttons = SDL_GetMouseState(nullptr, nullptr);
 		if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-			matrixIndexX = mouseY / (int)BoardRenderer::BoardDimmentions::SQUARE_SIZE;
-			matrixIndexY = mouseX / (int)BoardRenderer::BoardDimmentions::SQUARE_SIZE;
+			matrixIndexX = mouseX / BoardRenderer::SQUARE_SIZE;
+			matrixIndexY = mouseY / BoardRenderer::SQUARE_SIZE;
 		}
 
-		if (matrixIndexX != -1 && matrixIndexY != -1 && board->matrix[matrixIndexX][matrixIndexY] != "  ") {
+		std::cout << "Mouse cursor at: " << matrixIndexX << ", " << matrixIndexY << std::endl;
+
+		if (piecePtr != nullptr && matrixIndexX != -1 && matrixIndexY != -1)
+		{
+			piecePtr->PlaceLegalMove(board);
+			for (auto& i : piecePtr->legalMoves)
+			{
+				std::cout << "Legal move: " << i.first << ", " << i.second << std::endl;	
+				if (matrixIndexX == i.first && matrixIndexY == i.second)
+				{
+					board->matrix[i.second][i.first] = board->matrix[piecePtr->y][piecePtr->x];
+					board->matrix[piecePtr->y][piecePtr->x] = "  ";
+					piecePtr->x = i.first;
+					piecePtr->y = i.second;
+					break;
+				}
+			}
+		}
+
+		if (matrixIndexX != -1 && matrixIndexY != -1 && board->matrix[matrixIndexY][matrixIndexX][0] != ' ') {
 			SDL_Rect square = {
-				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE * matrixIndexY,
-				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE * matrixIndexX,
-				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE,
-				(int)BoardRenderer::BoardDimmentions::SQUARE_SIZE
+				BoardRenderer::SQUARE_SIZE * matrixIndexX,
+				BoardRenderer::SQUARE_SIZE * matrixIndexY,
+				BoardRenderer::SQUARE_SIZE,
+				BoardRenderer::SQUARE_SIZE
 			};
 			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 			SDL_RenderFillRect(renderer, &square);
 			SDL_SetRenderDrawColor(renderer, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_RED, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_GREEN, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_BLUE, 255);
 			SDL_RenderFillRect(renderer, &square);
+
+			if (piecePtr != nullptr)
+			{
+				//std::cout << "PiecePtr is not null\n";
+				piecePtr->PlaceLegalMove(board);
+				boardRenderer->DrawDots(renderer, std::move(piecePtr));
+			}
 		}
 
-		boardRenderer->PlacePeaces(renderer, *board);
+		boardRenderer->PlacePieces(renderer, *board);
 
 		SDL_RenderPresent(renderer);
 	}

@@ -3,6 +3,8 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "Board.h"
+#include "Pieces.h"
+#include <memory>
 
 class BoardRenderer {
 public:
@@ -15,13 +17,11 @@ enum class PieceType {
 	QUEEN = 'Q',
 	KING = 'K',
 };
-enum class BoardDimmentions {
-	ROWS = 8,
-	COLUMNS = 8,
-	SQUARE_SIZE = 95,
-	WINDOWS_WIDTH = SQUARE_SIZE * COLUMNS,
-	WINDOWS_HEIGHT = SQUARE_SIZE * ROWS,
-};
+static constexpr int ROWS = 8;
+static constexpr int COLUMNS = 8;
+static constexpr int SQUARE_SIZE = 95;
+static constexpr int WINDOW_WIDTH = SQUARE_SIZE * COLUMNS;
+static constexpr int WINDOW_HEIGHT = SQUARE_SIZE * ROWS;
 enum class SquareColor {
 	DARK_SQUARE_RED = 181,
 	DARK_SQUARE_GREEN = 136,
@@ -58,5 +58,7 @@ static const char* stringConstants[];
 void LoadTextures(SDL_Renderer* renderer);
 void Render(SDL_Renderer* renderer, const Board& board);
 void Free();
-void PlacePeaces(SDL_Renderer* renderer, const Board& board);
+void PlacePieces(SDL_Renderer* renderer, const Board& board);
+void DrawDots(SDL_Renderer* renderer, std::unique_ptr<Piece> piecePtr);
+void DrawCircle(SDL_Renderer* renderer, int x, int y, int radius);
 };

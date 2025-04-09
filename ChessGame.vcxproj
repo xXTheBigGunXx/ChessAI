@@ -133,10 +133,12 @@
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="BoardRenderer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Pieces.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
     <ClInclude Include="BoardRenderer.h" />
+    <ClInclude Include="Pieces.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SDL2 Template.aps" />

@@ -18,13 +18,13 @@ const char* BoardRenderer::stringConstants[] = {
 
 void BoardRenderer::Render(SDL_Renderer* renderer, const Board& board)
 {
-	for (size_t i = 0; i < (int)BoardDimmentions::ROWS; i++) {
-		for (size_t j = 0; j < (int)BoardDimmentions::COLUMNS; j++) {
+	for (size_t i = 0; i < BoardRenderer::ROWS; i++) {
+		for (size_t j = 0; j < BoardRenderer::COLUMNS; j++) {
 			SDL_Rect square = {
-				(int)BoardDimmentions::SQUARE_SIZE * j,
-				(int)BoardDimmentions::SQUARE_SIZE * i,
-				(int)BoardDimmentions::SQUARE_SIZE,
-				(int)BoardDimmentions::SQUARE_SIZE
+				BoardRenderer::SQUARE_SIZE * j,
+				BoardRenderer::SQUARE_SIZE * i,
+				BoardRenderer::SQUARE_SIZE,
+				BoardRenderer::SQUARE_SIZE
 			};
 
 			Color squaresColor = {
@@ -94,17 +94,20 @@ void BoardRenderer::Free()
 	SDL_DestroyTexture(wR);
 }
 
-void BoardRenderer::PlacePeaces(SDL_Renderer* renderer, const Board& board)
+void BoardRenderer::PlacePieces(SDL_Renderer* renderer, const Board& board)
 {
-	for (size_t i = 0; i < (int)BoardDimmentions::ROWS; i++) {
-		for (size_t j = 0; j < (int)BoardDimmentions::COLUMNS; j++) {
+	for (size_t i = 0; i < BoardRenderer::ROWS; i++) {
+		for (size_t j = 0; j < BoardRenderer::COLUMNS; j++) {
+
 			SDL_Rect pieceRect = {
-				(int)BoardDimmentions::SQUARE_SIZE * j,
-				(int)BoardDimmentions::SQUARE_SIZE * i,
-				(int)BoardDimmentions::SQUARE_SIZE,
-				(int)BoardDimmentions::SQUARE_SIZE
+				BoardRenderer::SQUARE_SIZE * j,
+				BoardRenderer::SQUARE_SIZE * i,
+				BoardRenderer::SQUARE_SIZE,
+				BoardRenderer::SQUARE_SIZE
 			};
+
 			SDL_Texture* texture = nullptr;
+
 			switch (board.matrix[i][j][1]) {
 			case 'B':
 				switch (board.matrix[i][j][0]) {
@@ -131,6 +134,36 @@ void BoardRenderer::PlacePeaces(SDL_Renderer* renderer, const Board& board)
 			}
 			if (texture != nullptr) {
 				SDL_RenderCopy(renderer, texture, nullptr, &pieceRect);
+			}
+		}
+	}
+}
+
+void BoardRenderer::DrawDots(SDL_Renderer* renderer, std::unique_ptr<Piece> piecePtr)
+{
+	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+	for (const auto& i : piecePtr->legalMoves) {
+		SDL_Rect dot = {
+			BoardRenderer::SQUARE_SIZE * i.first,
+			BoardRenderer::SQUARE_SIZE * i.second,
+			BoardRenderer::SQUARE_SIZE,
+			BoardRenderer::SQUARE_SIZE
+		};
+		SDL_SetRenderDrawColor(renderer, 158, 116, 84, 255);
+		if((i.first + i.second) % 2 == 0)
+			SDL_SetRenderDrawColor(renderer, 204, 184, 151, 255);
+
+		DrawCircle(renderer, dot.x + dot.w/2, dot.y + dot.h/2, SQUARE_SIZE/2);
+	}
+}
+
+void BoardRenderer::DrawCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius) {
+	for (int w = 0; w < radius * 2; w++) {
+		for (int h = 0; h < radius * 2; h++) {
+			int dx = radius - w;
+			int dy = radius - h;
+			if ((dx * dx + dy * dy) <= (radius * radius)) {
+				SDL_RenderDrawPoint(renderer, centerX + dx, centerY + dy);
 			}
 		}
 	}
