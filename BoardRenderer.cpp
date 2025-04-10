@@ -141,7 +141,6 @@ void BoardRenderer::PlacePieces(SDL_Renderer* renderer, const Board& board)
 
 void BoardRenderer::DrawDots(SDL_Renderer* renderer, std::unique_ptr<Piece> piecePtr)
 {
-	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
 	for (const auto& i : piecePtr->legalMoves) {
 		SDL_Rect dot = {
 			BoardRenderer::SQUARE_SIZE * i.first,

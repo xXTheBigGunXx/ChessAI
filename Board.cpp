@@ -13,3 +13,19 @@ Board::Board() {
 		}
     } 
 };
+
+void Board::FindKing(int& x, int& y, char color)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			if (matrix[i][j][0] == 'K' && matrix[i][j][1] == color)
+			{
+				x = j;
+				y = i;
+				return;
+			}
+		}
+	}
+}

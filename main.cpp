@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "BoardRenderer.h"
+#include "Pieces.h"
+#include <typeinfo>
 
 int main(int argc, char** argv) {
 	
@@ -43,10 +45,6 @@ int main(int argc, char** argv) {
 	SDL_RenderClear(renderer);
 
 	Board* board = new Board();
-	board->matrix[4][4] = "BB";
-	board->matrix[6][1] = "  ";
-	board->matrix[6][3] = "  ";
-	board->matrix[4][0] = "RW";
 
 	BoardRenderer* boardRenderer = new BoardRenderer();
 	boardRenderer->LoadTextures(renderer);
@@ -78,20 +76,27 @@ int main(int argc, char** argv) {
 			matrixIndexY = mouseY / BoardRenderer::SQUARE_SIZE;
 		}
 
-		std::cout << "Mouse cursor at: " << matrixIndexX << ", " << matrixIndexY << std::endl;
-
 		if (piecePtr != nullptr && matrixIndexX != -1 && matrixIndexY != -1)
 		{
 			piecePtr->PlaceLegalMove(board);
 			for (auto& i : piecePtr->legalMoves)
 			{
-				std::cout << "Legal move: " << i.first << ", " << i.second << std::endl;	
 				if (matrixIndexX == i.first && matrixIndexY == i.second)
 				{
 					board->matrix[i.second][i.first] = board->matrix[piecePtr->y][piecePtr->x];
 					board->matrix[piecePtr->y][piecePtr->x] = "  ";
 					piecePtr->x = i.first;
 					piecePtr->y = i.second;
+					piecePtr->legalMoves.clear();
+					matrixIndexX = -1;
+					matrixIndexY = -1;
+					board->whitesMove = !board->whitesMove;
+
+					if ((piecePtr->y == 0 || piecePtr->y == 7) && typeid(*piecePtr) == typeid(Pawn)) {
+						board->matrix[piecePtr->y][piecePtr->x] = std::string(1, 'Q') + piecePtr->color;
+					}
+					piecePtr = nullptr;
+
 					break;
 				}
 			}
@@ -109,13 +114,17 @@ int main(int argc, char** argv) {
 			SDL_SetRenderDrawColor(renderer, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_RED, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_GREEN, (int)BoardRenderer::SquareColor::YELLOW_SQUARE_BLUE, 255);
 			SDL_RenderFillRect(renderer, &square);
 
-			if (piecePtr != nullptr)
+			char color = board->whitesMove ? 'W' : 'B';
+			if (piecePtr != nullptr && piecePtr->color == color)
 			{
-				//std::cout << "PiecePtr is not null\n";
 				piecePtr->PlaceLegalMove(board);
 				boardRenderer->DrawDots(renderer, std::move(piecePtr));
 			}
 		}
+
+		std::cout << std::boolalpha;
+		King* temp = new King('W', 4 , 7);
+		std::cout << CanKingMove(board, temp) << std::endl;
 
 		boardRenderer->PlacePieces(renderer, *board);
 

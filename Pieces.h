@@ -47,3 +47,4 @@ struct Pawn : public Piece {
 };
 
 std::unique_ptr<Piece> GetPiece(Board* board, int x, int y);
+bool CanKingMove(Board* board, King* king);
