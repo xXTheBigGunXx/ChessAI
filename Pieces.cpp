@@ -5,6 +5,7 @@
 #include "Pieces.h"
 #include "BoardRenderer.h"
 #include <iostream>
+#include <typeinfo>
 
 void King::PlaceLegalMove(Board* board) {
     for (int i = -1; i <= 1; i++) {
@@ -22,19 +23,6 @@ void King::PlaceLegalMove(Board* board) {
 
 void Queen::PlaceLegalMove(Board* board)
 {
-    board->matrix[y][x] = "  ";
-    int ax, ay;
-
-	board->FindKing(ax, ay, color);
-
-	King* king = new King(board->matrix[y][x][1], ax, ay);
-    bool flag = CanKingMove(board, king);
-    board->matrix[y][x] = std::string(1, 'Q') + color;
-
-    if (flag == false)
-        return;
-
-
     for (int i = 1; i < 8; i++)
     {
         if (x + i < 8 && y + i < 8 && board->matrix[y + i][x + i][0] == ' ') {
@@ -157,21 +145,44 @@ void Queen::PlaceLegalMove(Board* board)
             break;
         }
     }
+
+    int tempx, tempy;
+    board->FindKing(tempx, tempy, color);
+    if (tempx == -1 || tempy == -1)
+    {
+        std::cout << "There is no " << color << " king on a board.\n";
+        return;
+    }
+
+    King* king = new King(color, tempx, tempy);
+    board->matrix[y][x] = "  ";
+    auto piece = CanKingBeCaptured(board, king);
+	board->matrix[y][x] = std::string(1, 'Q') + color;  
+
+    std::vector<std::pair<int, int>> filteredMoves;
+    if (piece != nullptr)
+    {
+        std::cout << "King can't move, because of piece: " << piece->x << ", " << piece->y << std::endl;
+		piece->PlaceLegalMove(board);
+
+        for (const auto& checkMove : piece->legalMoves)
+        {
+            
+            for (const auto& move : legalMoves)
+            {
+                if (move.first == checkMove.first && move.second == checkMove.second)
+                {
+                    filteredMoves.push_back(std::make_pair(move.first, move.second));
+                }
+            }
+        }
+
+        legalMoves = std::move(filteredMoves);
+    }
 }
 
 void Rook::PlaceLegalMove(Board *board)
 {
-    board->matrix[y][x] = "  ";
-    int ax, ay;
-
-    board->FindKing(ax, ay, color);
-
-    King* king = new King(board->matrix[y][x][1], ax, ay);
-    bool flag = CanKingMove(board, king);
-    board->matrix[y][x] = std::string(1, 'R') + color;
-
-    if (flag == false)
-        return;
 
     for (int i = y; i > -1; i--)
     {
@@ -246,17 +257,6 @@ void Rook::PlaceLegalMove(Board *board)
 
 void Bishop::PlaceLegalMove(Board* board)
 {
-    board->matrix[y][x] = "  ";
-    int ax, ay;
-
-    board->FindKing(ax, ay, color);
-
-    King* king = new King(board->matrix[y][x][1], ax, ay);
-    bool flag = CanKingMove(board, king);
-    board->matrix[y][x] = std::string(1, 'B') + color;
-
-    if (flag == false)
-        return;
 
     for (int i = 1; i < 8; i++)
     {
@@ -315,17 +315,6 @@ void Bishop::PlaceLegalMove(Board* board)
 
 void Knight::PlaceLegalMove(Board* board)
 {
-    board->matrix[y][x] = "  ";
-    int ax, ay;
-
-    board->FindKing(ax, ay, color);
-
-    King* king = new King(board->matrix[y][x][1], ax, ay);
-    bool flag = CanKingMove(board, king);
-    board->matrix[y][x] = std::string(1, 'N') + color;
-
-    if (flag == false)
-        return;
 
     const int dx[] = { 1, 2, 2, 1, -1, -2, -2, -1 };
     const int dy[] = { 2, 1, -1, -2, -2, -1, 1, 2 };
@@ -340,18 +329,6 @@ void Knight::PlaceLegalMove(Board* board)
 }
 
 void Pawn::PlaceLegalMove(Board* board) {
-
-    board->matrix[y][x] = "  ";
-    int ax, ay;
-
-    board->FindKing(ax, ay, color);
-
-    King* king = new King(board->matrix[y][x][1], ax, ay);
-    bool flag = CanKingMove(board, king);
-    board->matrix[y][x] = std::string(1, 'P') + color;
-
-    if (flag == false)
-        return;
 
     if (color == 'W') {
         if (y > 0 && board->matrix[y - 1][x][0] == ' ') {
@@ -420,45 +397,47 @@ std::unique_ptr<Piece> GetPiece(Board* board, int x, int y)
 	return nullptr;
 }
 
-bool CanKingMove(Board* board, King* king)
+std::unique_ptr<Piece> CanKingBeCaptured(Board* board, King* king) 
 {
-	void* piece = new Bishop(board->matrix[king->y][king->x][1], king->x, king->y);
-	char oppColor = king->color == 'W' ? 'B' : 'W';
-    static_cast<Bishop*>(piece)->PlaceLegalMove(board);
+    char oppColor = king->color == 'W' ? 'B' : 'W';
+    auto bishopSim = std::make_unique<Bishop>(king->color, king->x, king->y);
+    bishopSim->PlaceLegalMove(board);
 
-    for (auto& i : static_cast<Bishop*>(piece)->legalMoves)
-    {
-        if (board->matrix[i.second][i.first] == std::string(1, 'B') + oppColor || board->matrix[i.second][i.first] == std::string(1, 'Q') + oppColor)
-            return false;
+    for (const auto& move : bishopSim->legalMoves) {
+        std::string target = board->matrix[move.second][move.first];
+        if (target == "B" + std::string(1, oppColor))
+            return std::make_unique<Bishop>(oppColor, move.first, move.second);
+        if (target == "Q" + std::string(1, oppColor))
+            return std::make_unique<Queen>(oppColor, move.first, move.second);
     }
 
-	piece = new Rook(board->matrix[king->y][king->x][1], king->x, king->y);
-	static_cast<Rook*>(piece)->PlaceLegalMove(board);
+    auto rookSim = std::make_unique<Rook>(king->color, king->x, king->y);
+    rookSim->PlaceLegalMove(board);
 
-	for (auto& i : static_cast<Rook*>(piece)->legalMoves)
-	{
-		if (board->matrix[i.second][i.first] == std::string(1, 'R') + oppColor || board->matrix[i.second][i.first] == std::string(1, 'Q') + oppColor)
-			return false;
-	}
-
-	piece = new Knight(board->matrix[king->y][king->x][1], king->x, king->y);
-	static_cast<Knight*>(piece)->PlaceLegalMove(board);
-
-    for (auto& i : static_cast<Knight*>(piece)->legalMoves)
-    {
-		if (board->matrix[i.second][i.first] == std::string(1, 'N') + oppColor)
-			return false;
-    }
-	//piece = new Pawn(board->matrix[king->y][king->x][1], king->x, king->y);
-
-    if (king->color == 'W') {
-        if (king->y + 1 < 7 && king->x - 1 > 0 && board->matrix[king->y + 1][king->x - 1] == std::string(1, 'P') + oppColor) {
-            return false;
-        }
-        if (king->y + 1 < 7 && king->x + 1 < 8 && board->matrix[king->y + 1][king->x + 1] == std::string(1, 'P') + oppColor) {
-            return false;
-        }
+    for (const auto& move : rookSim->legalMoves) {
+        std::string target = board->matrix[move.second][move.first];
+        if (target == "R" + std::string(1, oppColor))
+            return std::make_unique<Rook>(oppColor, move.first, move.second);
+        if (target == "Q" + std::string(1, oppColor))
+            return std::make_unique<Queen>(oppColor, move.first, move.second);
     }
 
-    return true;
+    auto knightSim = std::make_unique<Knight>(king->color, king->x, king->y);
+    knightSim->PlaceLegalMove(board);
+
+    for (const auto& move : knightSim->legalMoves) {
+        if (board->matrix[move.second][move.first] == "N" + std::string(1, oppColor))
+            return std::make_unique<Knight>(oppColor, move.first, move.second);
+    }
+
+    int dy = (king->color == 'W') ? 1 : -1;
+    int pawnY = king->y + dy;
+
+    if (pawnY >= 0 && pawnY < 8) {
+        if (king->x - 1 >= 0 && board->matrix[pawnY][king->x - 1] == "P" + std::string(1, oppColor))
+            return std::make_unique<Pawn>(oppColor, king->x - 1, pawnY);
+        if (king->x + 1 < 8 && board->matrix[pawnY][king->x + 1] == "P" + std::string(1, oppColor))
+            return std::make_unique<Pawn>(oppColor, king->x + 1, pawnY);
+    }
+    return nullptr;
 }

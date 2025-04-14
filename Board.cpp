@@ -13,7 +13,6 @@ Board::Board() {
 		}
     } 
 };
-
 void Board::FindKing(int& x, int& y, char color)
 {
 	for (int i = 0; i < 8; i++)
@@ -28,4 +27,6 @@ void Board::FindKing(int& x, int& y, char color)
 			}
 		}
 	}
+	x = -1;
+	y = -1;
 }

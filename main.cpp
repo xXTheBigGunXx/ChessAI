@@ -65,11 +65,10 @@ int main(int argc, char** argv) {
 		SDL_RenderClear(renderer);
 
 		boardRenderer->Render(renderer, *board);
-		
 		auto piecePtr = GetPiece(board, matrixIndexX, matrixIndexY);
 
-		SDL_GetMouseState(&mouseX, &mouseY);
 
+		SDL_GetMouseState(&mouseX, &mouseY);
 		Uint32 buttons = SDL_GetMouseState(nullptr, nullptr);
 		if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 			matrixIndexX = mouseX / BoardRenderer::SQUARE_SIZE;
@@ -122,12 +121,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		std::cout << std::boolalpha;
-		King* temp = new King('W', 4 , 7);
-		std::cout << CanKingMove(board, temp) << std::endl;
-
 		boardRenderer->PlacePieces(renderer, *board);
-
 		SDL_RenderPresent(renderer);
 	}
 
