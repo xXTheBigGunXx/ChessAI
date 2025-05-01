@@ -152,7 +152,7 @@ void BoardRenderer::DrawDots(SDL_Renderer* renderer, std::unique_ptr<Piece> piec
 		if((i.first + i.second) % 2 == 0)
 			SDL_SetRenderDrawColor(renderer, 204, 184, 151, 255);
 
-		DrawCircle(renderer, dot.x + dot.w/2, dot.y + dot.h/2, SQUARE_SIZE/2);
+		DrawCircle(renderer, dot.x + dot.w/2, dot.y + dot.h/2, SQUARE_SIZE/5);
 	}
 }
 
